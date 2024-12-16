@@ -62,6 +62,8 @@
                 })
                 .then(data => {
                     document.getElementById('content').textContent = data; // Display plain text
+                    // Update the URL without reloading the page
+                    history.pushState({ chapter: currentChapter }, '', `?chapter=${currentChapter}`);
                 })
                 .catch(error => {
                     document.getElementById('content').textContent = 'Error loading chapter: ' + error.message;
@@ -73,9 +75,21 @@
             loadChapter(selectedIndex);
         }
 
+        // Handle back/forward navigation
+        window.onpopstate = function(event) {
+            if (event.state) {
+                loadChapter(event.state.chapter);
+            }
+        };
+
         // Load the chapter list on page load
         window.onload = () => {
             fetchChapters();
+            const urlParams = new URLSearchParams(window.location.search);
+            const chapterParam = urlParams.get('chapter');
+            if (chapterParam !== null) {
+                loadChapter(parseInt(chapterParam));
+            }
         };
     </script>
 
