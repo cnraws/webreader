@@ -12,7 +12,7 @@
         #content {
             margin-bottom: 20px;
         }
-        button {
+        button, select {
             padding: 10px 15px;
             margin: 5px;
         }
@@ -21,6 +21,7 @@
 <body>
 
     <div id="content">Loading...</div>
+    <select id="chapterSelect" onchange="selectChapter()"></select>
     <button id="prevBtn" onclick="loadChapter(currentChapter - 1)">Previous</button>
     <button id="nextBtn" onclick="loadChapter(currentChapter + 1)">Next</button>
 
@@ -28,13 +29,18 @@
         const chapters = [];
         let currentChapter = 0;
 
-        // Fetch the list of chapters from the GitHub repository
+        // Fetch the list of chapter files from the GitHub repository
         async function fetchChapters() {
             const response = await fetch('https://api.github.com/repos/cnraws/webreader/contents/chapters');
             const data = await response.json();
-            data.forEach(file => {
+            data.forEach((file, index) => {
                 if (file.name.endsWith('.html')) {
                     chapters.push(file.download_url);
+                    // Add chapter options to the dropdown
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = file.name;
+                    document.getElementById('chapterSelect').appendChild(option);
                 }
             });
             loadChapter(currentChapter); // Load the first chapter after fetching
@@ -45,6 +51,7 @@
                 return; // Out of bounds
             }
             currentChapter = index;
+            document.getElementById('chapterSelect').value = currentChapter; // Update dropdown
             fetch(chapters[currentChapter])
                 .then(response => {
                     if (!response.ok) {
@@ -60,7 +67,12 @@
                 });
         }
 
-        // Load chapters on page load
+        function selectChapter() {
+            const selectedIndex = document.getElementById('chapterSelect').value;
+            loadChapter(selectedIndex);
+        }
+
+        // Load the chapter list on page load
         window.onload = () => {
             fetchChapters();
         };
