@@ -9,10 +9,6 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        #content {
-            margin-bottom: 20px;
-            white-space: pre-wrap; /* Preserve whitespace and line breaks */
-        }
         button, select {
             padding: 10px 15px;
             margin: 5px;
@@ -21,7 +17,6 @@
 </head>
 <body>
 
-    <div id="content">Loading...</div>
     <select id="chapterSelect" onchange="selectChapter()"></select>
     <button id="prevBtn" onclick="loadChapter(currentChapter - 1)">Previous</button>
     <button id="nextBtn" onclick="loadChapter(currentChapter + 1)">Next</button>
@@ -53,21 +48,8 @@
             }
             currentChapter = index;
             document.getElementById('chapterSelect').value = currentChapter; // Update dropdown
-            fetch(chapters[currentChapter])
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    document.getElementById('content').textContent = data; // Display plain text
-                    // Update the URL without reloading the page
-                    history.pushState({ chapter: currentChapter }, '', `?chapter=${currentChapter}`);
-                })
-                .catch(error => {
-                    document.getElementById('content').textContent = 'Error loading chapter: ' + error.message;
-                });
+            // Redirect to the raw URL of the chapter
+            window.location.href = chapters[currentChapter];
         }
 
         function selectChapter() {
@@ -75,21 +57,9 @@
             loadChapter(selectedIndex);
         }
 
-        // Handle back/forward navigation
-        window.onpopstate = function(event) {
-            if (event.state) {
-                loadChapter(event.state.chapter);
-            }
-        };
-
         // Load the chapter list on page load
         window.onload = () => {
             fetchChapters();
-            const urlParams = new URLSearchParams(window.location.search);
-            const chapterParam = urlParams.get('chapter');
-            if (chapterParam !== null) {
-                loadChapter(parseInt(chapterParam));
-            }
         };
     </script>
 
