@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Reader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #content {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
 
+    <div id="content">Loading...</div>
+    <button id="prevBtn" onclick="loadChapter(currentChapter - 1)">Previous</button>
+    <button id="nextBtn" onclick="loadChapter(currentChapter + 1)">Next</button>
+
+    <script>
+        const chapters = [];
+        let currentChapter = 0;
+
+        // Fetch the list of chapters from the GitHub repository
+        async function fetchChapters() {
+            const response = await fetch('https://api.github.com/repos/cnraws/webreader/contents/chapters');
+            const data = await response.json();
+            data.forEach(file => {
+                if (file.name.endsWith('.html')) {
+                    chapters.push(file.download_url);
+                }
+            });
+            loadChapter(currentChapter); // Load the first chapter after fetching
+        }
+
+        function loadChapter(index) {
+            if (index < 0 || index >= chapters.length) {
+                return; // Out of bounds
+            }
+            currentChapter = index;
+            fetch(chapters[currentChapter])
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('content').innerHTML = data;
+                })
+                .catch(error => {
+                    document.getElementById('content').innerHTML = 'Error loading chapter: ' + error.message;
+                });
+        }
+
+        // Load chapters on page load
+        window.onload = () => {
+            fetchChapters();
+        };
+    </script>
+
+</body>
+</html>
